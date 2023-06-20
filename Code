@@ -1,0 +1,25 @@
+import csv
+from geopy.geocoders import Nominatim
+
+def plaatsnaar_coordinaten(plaatsnaam):
+    geolocator = Nominatim(user_agent="my_geocoder")
+    locatie = geolocator.geocode(plaatsnaam)
+    if locatie is None:
+        return None
+    else:
+        return locatie.latitude, locatie.longitude
+
+# Voorbeeldgebruik
+plaatsen = ["Amsterdam", "Rotterdam", "Utrecht", "Den Haag", "Eindhoven"]
+
+with open('coordinaten.csv', mode='w', newline='') as bestand:
+    writer = csv.writer(bestand)
+    writer.writerow(["Plaats", "Latitude", "Longitude"])
+    for plaats in plaatsen:
+        coordinaten = plaatsnaar_coordinaten(plaats)
+        if coordinaten is None:
+            print("Ongeldige plaatsnaam: {}".format(plaats))
+        else:
+            writer.writerow([plaats, coordinaten[0], coordinaten[1]])
+
+print("CSV-bestand 'coordinaten.csv' is succesvol gegenereerd.")
