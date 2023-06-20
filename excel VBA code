@@ -1,0 +1,71 @@
+Function CalculateDistance(Optional lat1 As Double = 0, Optional lon1 As Double = 0) As Double
+    Dim R As Double
+    Dim dLat As Double
+    Dim dLon As Double
+    Dim a As Double
+    Dim C As Double
+    Dim lat2 As Double
+    Dim lon2 As Double
+
+ 
+
+    Dim wbExternal As Workbook
+    Dim wsExternal As Worksheet
+    Dim rangeList As Range
+    Dim cell As Range
+    Dim shortestDistance As Double
+    Dim currentDistance As Double
+
+    On Error GoTo ErrorHandler
+
+    ' Radius of the earth in kilometers
+    R = 6371
+
+    ' If no coordinates are passed, take them from active cell
+    If lat1 = 0 And lon1 = 0 Then
+        lat1 = ActiveCell.Offset(0, -1).Value
+        lon1 = ActiveCell.Offset(0, -2).Value
+    End If
+
+    ' Open external file and set worksheet
+    Set wbExternal = Workbooks.Open("C:\Users\Wouter\OneDrive\Documenten\JDR.xlsx")
+    Set wsExternal = wbExternal.Worksheets("Sheet1")
+
+    ' Set range with values
+    Set rangeList = wsExternal.Range("B2:C555")
+
+    ' Initialize shortest distance with a large value
+    shortestDistance = 99999999
+
+    ' Loop through the list of values and find the shortest distance
+    For Each cell In rangeList
+        lat2 = cell.Value
+        lon2 = cell.Offset(0, 1).Value
+
+        ' Difference in latitudes and longitudes
+        dLat = WorksheetFunction.Radians(lat2 - lat1)
+        dLon = WorksheetFunction.Radians(lon2 - lon1)
+
+        ' Haversine formula
+        a = WorksheetFunction.Sin(dLat / 2) ^ 2 + WorksheetFunction.Cos(WorksheetFunction.Radians(lat1)) * WorksheetFunction.Cos(WorksheetFunction.Radians(lat2)) * WorksheetFunction.Sin(dLon / 2) ^ 2
+        C = 2 * WorksheetFunction.Atn2(Sqr(a), Sqr(1 - a))
+
+        ' Calculate distance
+        currentDistance = R * C
+
+        ' Update shortest distance if necessary
+        If currentDistance < shortestDistance Then
+            shortestDistance = currentDistance
+        End If
+    Next cell
+
+    ' Close external file
+    wbExternal.Close SaveChanges:=False
+
+    ' Return the shortest distance
+    CalculateDistance = shortestDistance
+    Exit Function
+
+ErrorHandler:
+    MsgBox "An error occurred: " & Err.Description
+End Function
